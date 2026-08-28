@@ -15,8 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { formatPrice, Product, products } from "@/data/store";
-import Côte NoireConcierge from "@/components/Côte NoireConcierge";
-
+import AlbaConcierge from "@/components/AlbaConcierge";
 interface StorefrontLayoutProps {
   children: React.ReactNode;
   cartItems?: Product[];
@@ -77,7 +76,9 @@ export default function StorefrontLayout({
 
           <Link to="/" className="group flex items-center gap-3" aria-label="Maison Côte Noire accueil">
             <span className="flex h-9 w-9 items-center justify-center rounded-full border border-gold/70 text-gold transition-transform group-hover:rotate-12">
-              <Sparkles size={16} strokeWidth={1.4} />
+            <img src="/images/cotenoireLogo.png"
+                alt="Côte Noire"
+                className="h-28 w-auto object-contain"/>         
             </span>
             <span className="font-display text-[20px] tracking-[0.2em] text-ink sm:text-[22px]">Côte Noire</span>
           </Link>
@@ -194,11 +195,11 @@ export default function StorefrontLayout({
         </div>
       )}
 
-      <Côte NoireConcierge
+    <AlbaConcierge
         open={assistantOpen}
         onOpenChange={setAssistantOpen}
         onAddToCart={onAddToCart}
-      />
+     />
 
       {cartOpen && (
         <div className="fixed inset-0 z-[58] bg-ink/30" role="dialog" aria-modal="true" aria-label="Votre panier">

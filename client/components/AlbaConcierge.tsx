@@ -3,7 +3,7 @@ import { ArrowRight, ChevronRight, MessageCircle, RefreshCw, Sparkles, X } from 
 import { Link } from "react-router-dom";
 import { formatPrice, Product, products } from "@/data/store";
 
-interface Côte NoireConciergeProps {
+interface AlbaConciergeProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddToCart?: (product: Product) => void;
@@ -70,7 +70,7 @@ const buildNote = (answers: Answers, recipient: string) => {
   return `Pour ${name}, ${occasionText}. Une attention choisie avec soin, à garder près de soi. Avec toute mon affection.`;
 };
 
-export default function Côte NoireConcierge({ open, onOpenChange, onAddToCart }: Côte NoireConciergeProps) {
+export default function AlbaConcierge({ open, onOpenChange, onAddToCart }: AlbaConciergeProps) {
   const [step, setStep] = useState<AssistantStep>("welcome");
   const [answers, setAnswers] = useState<Answers>(defaultAnswers);
   const [recipient, setRecipient] = useState("");
