@@ -8,7 +8,7 @@ La page de paiement du projet de référence a été intégrée au projet Côte 
 - Livraison standard et express.
 - Message cadeau facultatif.
 - Paiement par carte bancaire (interface de saisie et validation frontend).
-- Option PayPal (interface frontend).
+- Option Paiement à la livraison  (interface frontend).
 - Résumé de commande avec sous-total, livraison et total.
 - Page de confirmation de commande.
 - Persistance du panier via `localStorage` afin que le panier soit disponible sur la page de paiement après navigation.
@@ -33,4 +33,4 @@ npm run dev
 
 Puis ouvrir `/paiement` après avoir ajouté un produit au panier.
 
-> Le paiement intégré ici est celui du projet de référence sous forme de checkout frontend. Il ne traite pas encore une transaction bancaire réelle via Stripe, PayPal ou une passerelle tunisienne.
+> Le paiement intégré ici est celui du projet de référence sous forme de checkout frontend. Il ne traite pas encore une transaction bancaire réelle via Stripe, Paiement à la livraison ou une passerelle tunisienne.

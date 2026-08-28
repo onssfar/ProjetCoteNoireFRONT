@@ -66,11 +66,10 @@ function Section({
           },
         },
       }}
-      className={`${
-        dark
+      className={`${dark
           ? "bg-[#17130f] text-white"
           : "bg-[#f5efe7] text-ink"
-      } ${className}`}
+        } ${className}`}
     >
       {children}
     </motion.section>
@@ -300,44 +299,34 @@ export default function Index() {
           className="px-5 py-24 sm:px-10 lg:px-12"
         >
           <div className="mx-auto max-w-[1440px]">
-            <div className="grid gap-10 lg:grid-cols-[.55fr_1.45fr] lg:items-end">
-
-              <motion.div variants={fadeUp}>
+            <div className="flex min-h-[520px] items-center justify-center">
+              <motion.div
+                variants={fadeUp}
+                className="w-full max-w-3xl text-center"
+              >
                 <Label>
                   Collection bougies
                 </Label>
 
-                <h2 className="mt-5 font-display text-5xl leading-[.9] tracking-[-.04em] sm:text-6xl">
+                <h2 className="mt-6 font-display text-6xl leading-[.9] tracking-[-.04em] sm:text-7xl lg:text-8xl">
                   Des parfums
                   <br />
                   pour chaque moment.
                 </h2>
 
-                <p className="mt-6 max-w-sm text-sm leading-7 text-ink/55">
+                <p className="mx-auto mt-8 max-w-2xl text-base leading-8 text-ink/55">
                   Une collection courte, élégante et sensorielle,
                   créée pour accompagner les espaces de vie.
                 </p>
 
                 <Link
                   to="/collections/bougies"
-                  className="mt-7 inline-flex items-center gap-3 border-b border-ink pb-2 text-[9px] font-semibold uppercase tracking-[.18em]"
+                  className="mt-9 inline-flex items-center gap-3 border-b border-ink pb-2 text-[10px] font-semibold uppercase tracking-[.18em]"
                 >
                   Voir toute la collection
                   <ArrowRight size={14} />
                 </Link>
               </motion.div>
-
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {featured.map((product) => (
-                  <ProductMiniCard
-                    key={product.id}
-                    product={product}
-                    onAdd={addToCart}
-                    onQuickView={setQuickView}
-                  />
-                ))}
-              </div>
-
             </div>
           </div>
         </Section>
