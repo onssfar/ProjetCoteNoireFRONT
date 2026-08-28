@@ -1,0 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap");
+
+@import "tailwindcss";
+
+@config "../tailwind.config.ts";
+
+@layer base {
+  :root {
+    --background: 40 30% 97%;
+    --foreground: 29 13% 16%;
+    --card: 40 30% 98%;
+    --card-foreground: 29 13% 16%;
+    --popover: 40 30% 98%;
+    --popover-foreground: 29 13% 16%;
+    --primary: 29 13% 16%;
+    --primary-foreground: 40 30% 97%;
+    --secondary: 37 28% 89%;
+    --secondary-foreground: 29 13% 16%;
+    --muted: 37 20% 92%;
+    --muted-foreground: 29 9% 43%;
+    --accent: 36 33% 75%;
+    --accent-foreground: 29 13% 16%;
+    --destructive: 8 39% 54%;
+    --destructive-foreground: 40 30% 97%;
+    --border: 35 16% 84%;
+    --input: 35 16% 84%;
+    --ring: 36 33% 59%;
+    --radius: 0.25rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    margin: 0;
+  }
+
+  button,
+  a,
+  input,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: #e4d8c8;
+    color: #2e2924;
+  }
+}
+
+@layer utilities {
+  .glass-surface {
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.18);
+    backdrop-filter: blur(18px) saturate(125%);
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+    box-shadow: 0 20px 80px rgba(20,14,8,.10), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+
+  .text-balance { text-wrap: balance; }
+}
+
+@keyframes candle-flicker {
+  0%,100% { transform: translateX(-50%) scale(1) rotate(-2deg); }
+  50% { transform: translateX(-50%) scale(1.08) rotate(2deg); }
+}
+
+
+@layer components {
+  .checkout-label {
+    @apply flex flex-col gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/60;
+  }
+
+  .checkout-input {
+    @apply w-full border border-ink/15 bg-white px-4 py-3 text-[13px] font-normal normal-case tracking-normal text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-gold;
+  }
+}
