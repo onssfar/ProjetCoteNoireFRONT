@@ -1,127 +1,180 @@
 import type { Product } from "@/data/store";
 
 const API_URL = "http://localhost:8086/api";
+
 export type PaymentMethod =
-  | "CASH_ON_DELIVERY"
-  | "CARD";
+    | "CASH_ON_DELIVERY"
+    | "CARD";
 
 export type DeliveryMethod =
-  | "STANDARD"
-  | "EXPRESS";
+    | "STANDARD"
+    | "EXPRESS";
 
 export interface CreateOrderRequest {
-  customer: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    address: string;
-    city: string;
-    postalCode: string;
-  };
+    customer: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+        address: string;
+        city: string;
+        postalCode: string;
+    };
 
-  items: {
-    productId: number;
-    quantity: number;
-  }[];
+    items: {
+        productId: number;
+        quantity: number;
+    }[];
 
-  deliveryMethod: DeliveryMethod;
+    deliveryMethod: DeliveryMethod;
 
-  paymentMethod: PaymentMethod;
+    paymentMethod: PaymentMethod;
 
-  giftMessage?: string;
+    giftMessage?: string;
 }
 
 export interface OrderResponse {
-  id: number;
-  orderNumber: string;
-  status: string;
-  paymentMethod: string;
-  paymentStatus: string;
-  deliveryMethod: string;
-  subtotal: number;
-  deliveryFee: number;
-  total: number;
-  currency: string;
-  createdAt: string;
+    id: number;
+    orderNumber: string;
+    status: string;
+    paymentMethod: string;
+    paymentStatus: string;
+    deliveryMethod: string;
+    subtotal: number;
+    deliveryFee: number;
+    total: number;
+    currency: string;
+    createdAt: string;
 }
+
+
+/* =========================================================
+   PRODUITS
+   ========================================================= */
 
 export async function getProducts(): Promise<Product[]> {
-  const response = await fetch(`${API_URL}/products`);
 
-  if (!response.ok) {
-    throw new Error(
-      `Erreur lors de la récupération des produits : ${response.status}`
+    const response = await fetch(
+        `${API_URL}/products`
     );
-  }
 
-  const data = await response.json();
+    if (!response.ok) {
+        throw new Error(
+            `Erreur lors de la récupération des produits : ${response.status}`
+        );
+    }
 
-  return data.map((product: any) => ({
-    id: product.id,
-    name: product.name,
-    category: product.category,
-    price: Number(product.price),
-    oldPrice: undefined,
-    badge: undefined,
-    image: product.image || "/placeholder.svg",
+    const data = await response.json();
 
-    // Le backend ne possède pas encore hoverImage
-    hoverImage: product.image || "/placeholder.svg",
+    return data.map((product: any) => {
 
-    description: product.description || "",
-    scent: product.scent || "",
-  }));
+        const imageUrl = product.id
+            ? `${API_URL}/products/${product.id}/image`
+            : "/placeholder.svg";
+
+        return {
+            id: product.id,
+            name: product.name,
+            category: product.category,
+            price: Number(product.price),
+
+            oldPrice: undefined,
+            badge: undefined,
+
+            // IMAGE REELLE DU BACKEND
+            image: imageUrl,
+
+            // Même image pour le hover
+            hoverImage: imageUrl,
+
+            description:
+                product.description || "",
+
+            scent:
+                product.scent || "",
+        };
+    });
 }
 
-export async function getProduct(id: number): Promise<Product> {
-  const response = await fetch(`${API_URL}/products/${id}`);
 
-  if (!response.ok) {
-    throw new Error(
-      `Erreur lors de la récupération du produit : ${response.status}`
+/* =========================================================
+   PRODUIT PAR ID
+   ========================================================= */
+
+export async function getProduct(
+    id: number
+): Promise<Product> {
+
+    const response = await fetch(
+        `${API_URL}/products/${id}`
     );
-  }
 
-  const product = await response.json();
+    if (!response.ok) {
+        throw new Error(
+            `Erreur lors de la récupération du produit : ${response.status}`
+        );
+    }
 
-  return {
-    id: product.id,
-    name: product.name,
-    category: product.category,
-    price: Number(product.price),
-    oldPrice: undefined,
-    badge: undefined,
-    image: product.image || "/placeholder.svg",
-    hoverImage: product.image || "/placeholder.svg",
-    description: product.description || "",
-    scent: product.scent || "",
-  };
+    const product = await response.json();
+
+    const imageUrl = product.id
+        ? `${API_URL}/products/${product.id}/image`
+        : "/placeholder.svg";
+
+    return {
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        price: Number(product.price),
+
+        oldPrice: undefined,
+        badge: undefined,
+
+        image: imageUrl,
+
+        hoverImage: imageUrl,
+
+        description:
+            product.description || "",
+
+        scent:
+            product.scent || "",
+    };
 }
+
+
+/* =========================================================
+   CREER UNE COMMANDE
+   ========================================================= */
 
 export async function createOrder(
     order: CreateOrderRequest
-  ): Promise<OrderResponse> {
+): Promise<OrderResponse> {
+
     const response = await fetch(
-      `${API_URL}/orders`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(order),
-      }
+        `${API_URL}/orders`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+
+            body: JSON.stringify(order),
+        }
     );
-  
+
     if (!response.ok) {
-      const errorMessage =
-        await response.text();
-  
-      throw new Error(
-        errorMessage ||
-          `Erreur lors de la création de la commande : ${response.status}`
-      );
+
+        const errorMessage =
+            await response.text();
+
+        throw new Error(
+            errorMessage ||
+            `Erreur lors de la création de la commande : ${response.status}`
+        );
     }
-  
+
     return response.json();
-  }
+}

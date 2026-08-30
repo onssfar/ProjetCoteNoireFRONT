@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   motion,
   useScroll,
@@ -6,7 +6,6 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import {
-  ArrowDown,
   ArrowRight,
   ChevronRight,
   Plus,
@@ -15,7 +14,8 @@ import {
 import { Link } from "react-router-dom";
 
 import StorefrontLayout from "@/components/StorefrontLayout";
-import { formatPrice, Product, products } from "@/data/store";
+import { formatPrice, Product } from "@/data/store";
+import { getProducts } from "@/lib/api";
 import { getStoredCart, setStoredCart } from "@/lib/cartStorage";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -67,8 +67,8 @@ function Section({
         },
       }}
       className={`${dark
-          ? "bg-[#17130f] text-white"
-          : "bg-[#f5efe7] text-ink"
+        ? "bg-[#17130f] text-white"
+        : "bg-[#f5efe7] text-ink"
         } ${className}`}
     >
       {children}
@@ -76,7 +76,11 @@ function Section({
   );
 }
 
-function Label({ children }: { children: React.ReactNode }) {
+function Label({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <p className="text-[9px] font-semibold uppercase tracking-[0.32em] text-gold">
       {children}
@@ -99,14 +103,21 @@ function ProductMiniCard({
       whileHover={{ y: -6 }}
       className={`${glass} group overflow-hidden rounded-2xl border-ink/10 bg-white/50`}
     >
+      {/* IMAGE */}
       <div className="relative aspect-[0.86] overflow-hidden bg-sand/40">
+
         <img
           src={product.image}
           alt={product.name}
           className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
+          onError={(event) => {
+            event.currentTarget.src = "/placeholder.svg";
+          }}
         />
 
+        {/* ACTIONS */}
         <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+
           <button
             onClick={() => onQuickView(product)}
             className="flex-1 rounded-full bg-white/90 px-3 py-3 text-center text-[9px] font-semibold uppercase tracking-[.15em]"
@@ -120,38 +131,110 @@ function ProductMiniCard({
           >
             <Plus size={16} />
           </button>
+
         </div>
       </div>
 
+      {/* INFO */}
       <div className="p-5">
+
         <p className="text-[9px] uppercase tracking-[.22em] text-gold">
           {product.category}
         </p>
 
         <div className="mt-1 flex items-start justify-between gap-3">
+
           <div>
+
             <h3 className="font-display text-2xl leading-none">
               {product.name.replace("Bougie ", "")}
             </h3>
 
             <p className="mt-2 text-xs text-ink/45">
-              {product.scent}
+              {product.scent || "Parfum Côte Noire"}
             </p>
+
           </div>
 
           <span className="text-sm">
             {formatPrice(product.price)}
           </span>
+
         </div>
+
       </div>
     </motion.article>
   );
 }
 
 export default function Index() {
-  const [cartItems, setCartItems] = useState<Product[]>(getStoredCart);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [quickView, setQuickView] = useState<Product | null>(null);
+
+  /* =====================================================
+     CART
+     ===================================================== */
+
+  const [cartItems, setCartItems] =
+    useState<Product[]>(getStoredCart);
+
+  const [cartOpen, setCartOpen] =
+    useState(false);
+
+  /* =====================================================
+     QUICK VIEW
+     ===================================================== */
+
+  const [quickView, setQuickView] =
+    useState<Product | null>(null);
+
+  /* =====================================================
+     PRODUITS BACKEND
+     ===================================================== */
+
+  const [backendProducts, setBackendProducts] =
+    useState<Product[]>([]);
+
+  const [productsLoading, setProductsLoading] =
+    useState(true);
+
+  /* =====================================================
+     CHARGEMENT DES PRODUITS
+     ===================================================== */
+
+  useEffect(() => {
+
+    const loadProducts = async () => {
+
+      try {
+
+        setProductsLoading(true);
+
+        const data = await getProducts();
+
+        setBackendProducts(data);
+
+      } catch (error) {
+
+        console.error(
+          "Erreur lors du chargement des produits :",
+          error
+        );
+
+      } finally {
+
+        setProductsLoading(false);
+
+      }
+
+    };
+
+    loadProducts();
+
+  }, []);
+
+  /* =====================================================
+     SCROLL
+     ===================================================== */
+
   const { scrollYProgress } = useScroll();
 
   const heroY = useTransform(
@@ -166,19 +249,45 @@ export default function Index() {
     [1, 1.08]
   );
 
+  /* =====================================================
+     BOUGIES DU BACKEND
+     ===================================================== */
+
   const candles = useMemo(
-    () => products.filter((p) => p.category === "Bougies"),
-    []
+    () =>
+      backendProducts.filter(
+        (product) =>
+          product.category?.toLowerCase() ===
+          "bougies"
+      ),
+    [backendProducts]
   );
 
-  const featured = candles.slice(0, 4);
+  /* =====================================================
+     PRODUITS MIS EN AVANT
+     ===================================================== */
+
+  const featured = useMemo(
+    () => candles.slice(0, 4),
+    [candles]
+  );
+
+  /* =====================================================
+     AJOUT PANIER
+     ===================================================== */
 
   const addToCart = (product: Product) => {
+
     setCartItems((current) => {
-      const next = current.some((item) => item.id === product.id)
+
+      const next = current.some(
+        (item) => item.id === product.id
+      )
         ? current
         : [...current, product];
+
       setStoredCart(next);
+
       return next;
     });
 
@@ -187,26 +296,55 @@ export default function Index() {
 
   return (
     <StorefrontLayout
+
       cartItems={cartItems}
+
       cartOpen={cartOpen}
-      onCartOpen={() => setCartOpen(true)}
-      onCartClose={() => setCartOpen(false)}
+
+      onCartOpen={() =>
+        setCartOpen(true)
+      }
+
+      onCartClose={() =>
+        setCartOpen(false)
+      }
+
       onRemoveItem={(id) =>
         setCartItems((current) => {
-          const next = current.filter((item) => item.id !== id);
+
+          const next =
+            current.filter(
+              (item) => item.id !== id
+            );
+
           setStoredCart(next);
+
           return next;
         })
       }
+
       onAddToCart={(product) => {
+
         setCartItems((current) => {
-          const next = current.some((item) => item.id === product.id) ? current : [...current, product];
+
+          const next =
+            current.some(
+              (item) =>
+                item.id === product.id
+            )
+              ? current
+              : [...current, product];
+
           setStoredCart(next);
+
           return next;
         });
+
         setCartOpen(true);
       }}
+
     >
+
       <main className="overflow-hidden">
 
         {/* ================================================= */}
@@ -217,14 +355,20 @@ export default function Index() {
           id="hero"
           className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-[#130f0c] text-white"
         >
+
           <motion.img
+
             style={{
               y: heroY,
               scale: heroScale,
             }}
+
             src="https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=2200&q=90"
+
             alt="Bougie Cote Noir"
+
             className="absolute inset-0 h-full w-full object-cover"
+
           />
 
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_45%,rgba(207,157,95,.22),transparent_30%),linear-gradient(90deg,rgba(10,7,5,.82),rgba(10,7,5,.24),rgba(10,7,5,.55))]" />
@@ -232,63 +376,72 @@ export default function Index() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
 
           <div className="relative z-10 mx-auto flex min-h-[calc(100vh-80px)] max-w-[1500px] items-end px-6 pb-12 sm:px-10 sm:pb-16 lg:px-16">
+
             <motion.div
               variants={fadeUp}
               initial="hidden"
               animate="show"
               className="max-w-3xl"
             >
+
               <Label>
                 Maison de bougies parfumées
               </Label>
 
               <h1 className="mt-6 max-w-4xl font-display text-[clamp(4rem,9vw,9rem)] leading-[.78] tracking-[-.055em]">
+
                 La lumière
                 <br />
                 comme matière.
+
               </h1>
 
               <p className="mt-8 max-w-lg text-sm leading-7 text-white/70">
+
                 Des bougies artisanales, coulées à la main,
                 pensées comme des objets d'intérieur et
                 composées autour de parfums singuliers.
+
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
+
                 <Link
                   to="/collections/bougies"
                   className="rounded-full bg-[#efe1cd] px-6 py-4 text-[9px] font-semibold uppercase tracking-[.18em] text-ink transition-transform hover:scale-[1.03]"
                 >
+
                   Découvrir la collection
+
                   <ArrowRight
                     className="ml-2 inline"
                     size={14}
                   />
+
                 </Link>
 
                 <a
-                  href="#notes"
+                  href="#collection"
                   className={`${glass} rounded-full px-6 py-4 text-[9px] font-semibold uppercase tracking-[.18em]`}
                 >
+
                   Notre univers
+
                   <ChevronRight
                     className="ml-1 inline"
                     size={14}
                   />
+
                 </a>
+
               </div>
+
             </motion.div>
+
           </div>
 
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            transition={{ delay: 0.5 }}
-            className={`${glass} absolute bottom-5 right-5 hidden rounded-2xl p-4 md:block lg:right-12`}
-          >
-          </motion.div>
         </section>
+
 
         {/* ================================================= */}
         {/* 02 — COLLECTION */}
@@ -298,80 +451,203 @@ export default function Index() {
           id="collection"
           className="px-5 py-24 sm:px-10 lg:px-12"
         >
+
           <div className="mx-auto max-w-[1440px]">
-            <div className="flex min-h-[520px] items-center justify-center">
+
+            {/* INTRO */}
+            <div className="flex min-h-[420px] items-center justify-center">
+
               <motion.div
                 variants={fadeUp}
                 className="w-full max-w-3xl text-center"
               >
+
                 <Label>
                   Collection bougies
                 </Label>
 
                 <h2 className="mt-6 font-display text-6xl leading-[.9] tracking-[-.04em] sm:text-7xl lg:text-8xl">
+
                   Des parfums
                   <br />
                   pour chaque moment.
+
                 </h2>
 
                 <p className="mx-auto mt-8 max-w-2xl text-base leading-8 text-ink/55">
+
                   Une collection courte, élégante et sensorielle,
                   créée pour accompagner les espaces de vie.
+
                 </p>
 
                 <Link
                   to="/collections/bougies"
                   className="mt-9 inline-flex items-center gap-3 border-b border-ink pb-2 text-[10px] font-semibold uppercase tracking-[.18em]"
                 >
+
                   Voir toute la collection
+
                   <ArrowRight size={14} />
+
                 </Link>
+
               </motion.div>
+
             </div>
+
+
+            {/* ================================================= */}
+            {/* PRODUITS BACKEND */}
+            {/* ================================================= */}
+
+            {productsLoading && (
+
+              <div className="py-10 text-center">
+
+                <p className="text-xs uppercase tracking-[.2em] text-ink/40">
+                  Chargement des produits...
+                </p>
+
+              </div>
+
+            )}
+
+
+            {!productsLoading &&
+              featured.length > 0 && (
+
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+                  {featured.map((product) => (
+
+                    <ProductMiniCard
+
+                      key={product.id}
+
+                      product={product}
+
+                      onAdd={addToCart}
+
+                      onQuickView={
+                        setQuickView
+                      }
+
+                    />
+
+                  ))}
+
+                </div>
+
+              )}
+
+
+            {!productsLoading &&
+              featured.length === 0 && (
+
+                <div className="py-10 text-center">
+
+                  <p className="text-sm text-ink/45">
+                    Aucun produit disponible.
+                  </p>
+
+                </div>
+
+              )}
+
           </div>
+
         </Section>
+
 
         {/* ================================================= */}
         {/* QUICK VIEW */}
         {/* ================================================= */}
 
         <AnimatePresence>
+
           {quickView && (
+
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+
+              initial={{
+                opacity: 0,
+              }}
+
+              animate={{
+                opacity: 1,
+              }}
+
+              exit={{
+                opacity: 0,
+              }}
+
               className="fixed inset-0 z-[80] flex items-center justify-center bg-black/55 px-5 py-8 backdrop-blur-md"
+
               role="dialog"
+
               aria-modal="true"
+
             >
+
               <motion.div
+
                 initial={{
                   y: 30,
                   scale: 0.97,
                 }}
+
                 animate={{
                   y: 0,
                   scale: 1,
                 }}
+
                 exit={{
                   y: 20,
                   scale: 0.98,
                 }}
+
                 className="relative grid max-h-[90vh] w-full max-w-[900px] overflow-auto rounded-3xl bg-[#f7f1e9] shadow-2xl sm:grid-cols-2"
               >
+
+                {/* CLOSE */}
+
                 <button
-                  onClick={() => setQuickView(null)}
+
+                  onClick={() =>
+                    setQuickView(null)
+                  }
+
                   className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/80"
+
                 >
+
                   <X size={18} />
+
                 </button>
 
+
+                {/* IMAGE BACKEND */}
+
                 <img
+
                   src={quickView.image}
+
                   alt={quickView.name}
+
                   className="aspect-square w-full object-cover"
+
+                  onError={(event) => {
+
+                    event.currentTarget.src =
+                      "/placeholder.svg";
+
+                  }}
+
                 />
+
+
+                {/* DETAILS */}
 
                 <div className="flex flex-col justify-center p-8 sm:p-12">
 
@@ -380,45 +656,76 @@ export default function Index() {
                   </Label>
 
                   <h2 className="mt-4 font-display text-5xl leading-none">
+
                     {quickView.name}
+
                   </h2>
 
                   <p className="mt-3 text-xs uppercase tracking-[.18em] text-ink/40">
-                    {quickView.scent}
+
+                    {quickView.scent ||
+                      "Parfum Côte Noire"}
+
                   </p>
 
                   <p className="mt-7 text-sm leading-7 text-ink/55">
-                    {quickView.description}
+
+                    {quickView.description ||
+                      "Découvrez ce produit Côte Noire."}
+
                   </p>
 
                   <div className="mt-8 flex items-center justify-between border-t border-ink/10 pt-6">
 
                     <span className="font-display text-3xl">
-                      {formatPrice(quickView.price)}
+
+                      {formatPrice(
+                        quickView.price
+                      )}
+
                     </span>
 
                     <button
+
                       onClick={() => {
-                        addToCart(quickView);
-                        setQuickView(null);
+
+                        addToCart(
+                          quickView
+                        );
+
+                        setQuickView(
+                          null
+                        );
+
                       }}
+
                       className="rounded-full bg-ink px-6 py-4 text-[9px] font-semibold uppercase tracking-[.16em] text-white"
+
                     >
+
                       Ajouter
+
                       <ArrowRight
                         className="ml-2 inline"
                         size={13}
                       />
+
                     </button>
 
                   </div>
+
                 </div>
+
               </motion.div>
+
             </motion.div>
+
           )}
+
         </AnimatePresence>
 
       </main>
+
     </StorefrontLayout>
   );
 }

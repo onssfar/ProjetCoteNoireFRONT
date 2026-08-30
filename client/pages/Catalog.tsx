@@ -242,13 +242,13 @@ export default function Catalog() {
           "=== PRODUITS BACKEND ==="
         );
         console.table(
-          data.map((product) => ({
-            id: product.id,
-            name: product.name,
-            category: product.category,
-            scent: product.scent,
-          }))
-        );
+  data.map((product) => ({
+    id: product.id,
+    name: product.name,
+    category: product.category,
+    scent: product.scent,
+  }))
+);
 
         /*
          * Le backend ne possède pas forcément
